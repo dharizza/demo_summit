@@ -1,0 +1,35 @@
+<?php
+/**
+ * @file
+ * Install file for user login redirect module.
+ */
+
+/**
+ *  Implements hook_install().
+ */
+function user_login_redirect_install() {
+  user_login_redirect_remove_nav_block();
+}
+
+/**
+ * Remove navigation block.
+ */
+function user_login_redirect_update_7000() {
+  user_login_redirect_remove_nav_block();
+}
+
+/**
+ * Remove navigation block config from block table.
+ */
+function user_login_redirect_remove_nav_block() {
+  block_flush_caches();
+  db_update('block')
+    ->fields(array(
+      'status' => 0,
+      'region' => -1,
+    ))
+    ->condition('theme', 'bartik')
+    ->condition('module', 'system')
+    ->condition('delta', 'navigation')
+    ->execute();
+}

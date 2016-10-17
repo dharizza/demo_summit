@@ -1,0 +1,110 @@
+<?php
+/**
+ * @file
+ * Main file of user_login_redirect module.
+ */
+
+/**
+ * Implements hook_help().
+ */
+function user_login_redirect_help($path, $arg) {
+  switch ($path) {
+  case 'admin/help#user_login_redirect':
+    return '<p>' . t('This module provides redirects on login by role') . '</p>';
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function user_login_redirect_menu() {
+  $items = array();
+  $items['admin/config/people/user-login-redirect'] = array(
+    'title' => 'User login redirect Config',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('user_login_redirect_config_form'),
+    'access callback' => 'user_access',
+    'access arguments' => array('configure user login redirect'),
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function user_login_redirect_permission() {
+  $permissions['configure user login redirect'] = array(
+    'title' => t('Configure settings for user login redirect'),
+    'description' => t('Access to configure user login redirect'),
+    'restrict access' => TRUE,
+  );
+  return $permissions;
+}
+
+/**
+ * Generates config form for this module.
+ */
+function user_login_redirect_config_form($form, &$form_state) {
+  $roles = user_roles(TRUE);
+  foreach ($roles as $rid => $role_name) {
+    $form['user_login_redirect_weight_' . $rid] = array(
+      '#type' => 'weight',
+      '#title' => t('Weight for role @role_name',
+      array('@role_name' => $role_name)),
+      '#description' => t('The lower weight, the more importance the role will have'),
+      '#default_value' => variable_get('user_login_redirect_weight_' . $rid, 0),
+    );
+    $form['user_login_redirect_path_' . $rid] = array(
+      '#type' => 'textfield',
+      '#title' => t('Redirect path for role @role_name',
+      array('@role_name' => $role_name)),
+      '#description' => t('The path to redirect this role.'),
+      '#default_value' => variable_get('user_login_redirect_path_' . $rid, ''),
+    );
+  }
+  return system_settings_form($form);
+}
+
+/**
+ * Validate function for my config form.
+ */
+function user_login_redirect_config_form_validate($form, &$form_state) {
+  $values = $form_state['values'];
+  $roles = user_roles(TRUE);
+  foreach ($roles as $rid => $role_name) {
+    if ($values['user_login_redirect_path_' . $rid] &&
+      !drupal_valid_path($values['user_login_redirect_path_' . $rid], TRUE)) {
+        form_set_error('user_login_redirect_path_' . $rid . '][',
+          t('You must set a valid url for the role @role_name',
+          array('@role_name' => $role_name)));
+      }
+  }
+}
+
+/**
+ * Implements hook_user_login().
+ */
+function user_login_redirect_user_login(&$edit, $account) {
+  $redirect_roles = array();
+  foreach ($account->roles as $role_id => $role_name) {
+    if ($path = variable_get('user_login_redirect_path_' . $role_id, '')) {
+      $redirect_roles[$role_id] = array(
+        'weight' => variable_get('user_login_redirect_weight_' . $role_id, 0),
+        'path' => $path,
+      );
+    }
+  }
+  $min_weight = FALSE;
+  $redirect_path = '';
+
+  foreach ($redirect_roles as $role_id => $value) {
+    if ($min_weight === FALSE || $min_weight > $value['weight']) {
+      $min_weight = $value['weight'];
+      $redirect_path = $value['path'];
+    }
+  }
+
+  $edit['redirect'] = $redirect_path;
+  unset($_GET['destination']);
+  drupal_static_reset('drupal_get_destination');
+}
