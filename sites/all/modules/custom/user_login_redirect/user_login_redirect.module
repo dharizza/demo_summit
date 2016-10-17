@@ -47,14 +47,20 @@ function user_login_redirect_permission() {
 function user_login_redirect_config_form($form, &$form_state) {
   $roles = user_roles(TRUE);
   foreach ($roles as $rid => $role_name) {
-    $form['user_login_redirect_weight_' . $rid] = array(
+    $form['roles_properties_fieldset_' . $rid] = array(
+      '#type' => 'fieldset',
+      '#title' => t('@role_name role', array('@role_name' => $role_name)),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+    );
+    $form['roles_properties_fieldset_' . $rid]['user_login_redirect_weight_' . $rid] = array(
       '#type' => 'weight',
       '#title' => t('Weight for role @role_name',
       array('@role_name' => $role_name)),
       '#description' => t('The lower weight, the more importance the role will have'),
       '#default_value' => variable_get('user_login_redirect_weight_' . $rid, 0),
     );
-    $form['user_login_redirect_path_' . $rid] = array(
+    $form['roles_properties_fieldset_' . $rid]['user_login_redirect_path_' . $rid] = array(
       '#type' => 'textfield',
       '#title' => t('Redirect path for role @role_name',
       array('@role_name' => $role_name)),
