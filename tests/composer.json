@@ -1,0 +1,7 @@
+{
+  "require-dev": {
+    "behat/behat": "~3.0",
+    "testdrupal/behatextension": "dev-master",
+    "devinci/devinci-behat-extension": "dev-master"
+  }
+}

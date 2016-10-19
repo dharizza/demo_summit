@@ -1,0 +1,47 @@
+default:
+  autoload:
+    '': "%paths.base%/features/bootstrap"
+  suites:
+    default:
+      paths: ["%paths.base%/features"]
+      contexts:
+        - FeatureContext
+        - Drupal\DrupalExtension\Context\DrupalContext
+        - Drupal\DrupalExtension\Context\MinkContext
+        - Drupal\DrupalExtension\Context\MessageContext
+        - Drupal\DrupalExtension\Context\DrushContext
+        - TestDrupal\BehatExtension\Context\PageContext
+        - Devinci\DevinciExtension\Context\DebugContext:
+            asset_dump_path: %paths.base%/features/assets
+        - Devinci\DevinciExtension\Context\JavascriptContext:
+            maximum_wait: 30
+  extensions:
+    Behat\MinkExtension:
+      files_path: "%paths.base%/sites/default/files"
+      goutte: ~
+      selenium2: ~
+      base_url: "http://behatdemo_badcamp2016.local.dev"
+      javascript_session: 'selenium2'
+    Drupal\DrupalExtension:
+      blackbox: ~
+      api_driver: "drupal"
+      selectors:
+        message_selector: '.messages'
+        error_message_selector: '.messages.error'
+        success_message_selector: '.messages.status'
+      drupal:
+        drupal_root: "/home/vagrant/www/behatdemo_badcamp2016"
+      drush:
+        root: "/home/vagrant/www/behatdemo_badcamp2016"
+      region_map:
+        content: ".l-two-column"
+        contentmain: ".l-two-column > .column-1"
+        tabs: ".tabs"
+        sidebar: ".l-two-column > .column-2"
+        footer: "#footer"
+    TestDrupal\BehatExtension:
+      default_contexts_map:
+        mink: Drupal\DrupalExtension\Context\MinkContext
+        drupal: Drupal\DrupalExtension\Context\DrupalContext
+        js: Devinci\DevinciExtension\Context\JavascriptContext
+        page: TestDrupal\BehatExtension\Context\PageContext
